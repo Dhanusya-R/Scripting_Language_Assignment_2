@@ -1,0 +1,165 @@
+require 'sinatra'
+require 'json'
+
+class BankAccount
+  attr_reader :owner, :balance
+
+  def initialize(owner, initial_balance = 0)
+    @owner = owner
+    @balance = initial_balance
+  end
+
+  def add_balance(amount)
+    if amount > 0
+      @balance += amount
+      { message: "Deposited ₹#{amount}. New balance: ₹#{@balance}", balance: @balance }
+    else
+      { message: "Deposit amount must be positive!", balance: @balance }
+    end
+  end
+
+  def withdraw(amount)
+    if amount <= 0
+      { message: "Withdrawal amount must be positive!", balance: @balance }
+    elsif amount > @balance
+      { message: "Insufficient funds!", balance: @balance }
+    else
+      @balance -= amount
+      { message: "Withdrew ₹#{amount}. Remaining balance: ₹#{@balance}", balance: @balance }
+    end
+  end
+end
+
+
+# Sinatra Web App
+
+account = BankAccount.new("User", 1000)
+
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Bank Account</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .container {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        width: 350px;
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 15px;
+        color: #333;
+      }
+      .balance {
+        font-size: 1.3em;
+        margin: 15px 0;
+        font-weight: bold;
+        color: green;
+      }
+      input {
+        padding: 8px;
+        width: 80%;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline: none;
+      }
+      button {
+        margin: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .deposit { background: #28a745; color: white; }
+      .withdraw { background: #dc3545; color: white; }
+      .deposit:hover { background: #218838; }
+      .withdraw:hover { background: #c82333; }
+      .message {
+        margin-top: 12px;
+        font-weight: bold;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2> Bank Account</h2>
+      <div class="balance">Balance: ₹<span id="balance">0</span></div>
+
+      <input type="number" id="amount" placeholder="Enter amount"><br>
+
+      <button class="deposit" onclick="deposit()">Deposit</button>
+      <button class="withdraw" onclick="withdraw()">Withdraw</button>
+
+      <div class="message" id="message"></div>
+    </div>
+
+    <script>
+      async function fetchBalance() {
+        let res = await fetch('/balance');
+        let data = await res.json();
+        document.getElementById("balance").textContent = data.balance;
+      }
+
+      async function deposit() {
+        let amt = parseInt(document.getElementById("amount").value);
+        let res = await fetch('/deposit', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: amt })
+        });
+        let data = await res.json();
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("balance").textContent = data.balance;
+      }
+
+      async function withdraw() {
+        let amt = parseInt(document.getElementById("amount").value);
+        let res = await fetch('/withdraw', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: amt })
+        });
+        let data = await res.json();
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("balance").textContent = data.balance;
+      }
+
+      fetchBalance();
+    </script>
+  </body>
+  </html>
+  HTML
+end
+
+post '/deposit' do
+  data = JSON.parse(request.body.read)
+  amount = data["amount"].to_i
+  content_type :json
+  account.add_balance(amount).to_json
+end
+
+post '/withdraw' do
+  data = JSON.parse(request.body.read)
+  amount = data["amount"].to_i
+  content_type :json
+  account.withdraw(amount).to_json
+end
+
+get '/balance' do
+  content_type :json
+  { balance: account.balance }.to_json
+end
