@@ -1,0 +1,12 @@
+proc sphereVolume {radius} {
+    set pi [expr {acos(-1)}]
+    set volume [expr {(4.0/3.0) * $pi * pow($radius,3)}]
+    return $volume
+}
+
+puts -nonewline "Enter the radius of the sphere: "
+flush stdout
+gets stdin radius
+
+set result [sphereVolume $radius]
+puts "The volume of the sphere with radius $radius is: $result"
