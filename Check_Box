@@ -1,0 +1,28 @@
+package require Tk
+
+wm title . "List Box Example"
+
+listbox .lb1 -height 10 -width 20
+pack .lb1 -side left -padx 10 -pady 10
+
+listbox .lb2 -height 10 -width 20
+pack .lb2 -side left -padx 10 -pady 10
+
+foreach item {Apple Banana Orange Mango Grape} {
+    .lb1 insert end $item
+}
+
+bind .lb1 <<ListboxSelect>> {
+    set sel [.lb1 curselection]
+    if {$sel != ""} {
+        set val [.lb1 get $sel]
+        .lb2 insert end $val
+    }
+}
+
+bind .lb2 <<ListboxSelect>> {
+    set sel [.lb2 curselection]
+    if {$sel != ""} {
+        .lb2 delete $sel
+    }
+}
