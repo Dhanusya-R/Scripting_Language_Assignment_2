@@ -1,0 +1,137 @@
+require 'sinatra'
+require 'json'
+
+class Vehicle
+  attr_accessor :fuel, :mileage
+
+  def initialize(fuel, mileage)
+    @fuel = fuel
+    @mileage = mileage
+  end
+
+  def check_fuel
+    "Fuel level: #{@fuel} liters"
+  end
+
+  def calculate_range
+    "Can travel #{@fuel * @mileage} km"
+  end
+
+  def maintenance
+    "General vehicle maintenance completed."
+  end
+end
+
+class Car < Vehicle
+  def honk
+    "Car horn: Beep beep!"
+  end
+end
+
+class Truck < Vehicle
+  def load_capacity
+    "Truck can carry heavy loads."
+  end
+end
+
+class Motorcycle < Vehicle
+  def wheelie
+    "Motorcycle performs a wheelie!"
+  end
+end
+
+
+get '/' do
+  <<-HTML
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Vehicle Management</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        width: 400px;
+        text-align: center;
+      }
+      h2 { color: #333; }
+      button {
+        margin: 5px;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .car { background: #28a745; color: white; }
+      .truck { background: #007bff; color: white; }
+      .bike { background: #dc3545; color: white; }
+      .output {
+        margin-top: 15px;
+        font-weight: bold;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Vehicle Management System</h2>
+      <p>Click a vehicle to see its behavior:</p>
+      <button class="car" onclick="showCar()">Car</button>
+      <button class="truck" onclick="showTruck()">Truck</button>
+      <button class="bike" onclick="showBike()">Motorcycle</button>
+      <div class="output" id="output"></div>
+    </div>
+
+    <script>
+      async function showCar() {
+        let res = await fetch('/car');
+        let data = await res.json();
+        document.getElementById("output").innerHTML = data.join("<br>");
+      }
+
+      async function showTruck() {
+        let res = await fetch('/truck');
+        let data = await res.json();
+        document.getElementById("output").innerHTML = data.join("<br>");
+      }
+
+      async function showBike() {
+        let res = await fetch('/bike');
+        let data = await res.json();
+        document.getElementById("output").innerHTML = data.join("<br>");
+      }
+    </script>
+  </body>
+  </html>
+  HTML
+end
+
+get '/car' do
+  car = Car.new(40, 15)
+  content_type :json
+  [car.check_fuel, car.calculate_range, car.honk].to_json
+end
+
+get '/truck' do
+  truck = Truck.new(100, 8)
+  content_type :json
+  [truck.check_fuel, truck.calculate_range, truck.load_capacity].to_json
+end
+
+get '/bike' do
+  bike = Motorcycle.new(15, 30)
+  content_type :json
+  [bike.check_fuel, bike.calculate_range, bike.wheelie].to_json
+end
